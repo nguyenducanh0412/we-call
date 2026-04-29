@@ -1,36 +1,144 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📞 WebCall
 
-## Getting Started
+Real-time video calling application built with Next.js, LiveKit, and Socket.io.
 
-First, run the development server:
+## 🚀 Phase 1 Setup Complete ✅
+
+This project has completed Phase 1 of development:
+- ✅ Next.js 14 with TypeScript and Tailwind CSS
+- ✅ Prisma ORM with PostgreSQL
+- ✅ NextAuth.js v5 with Google OAuth
+- ✅ Full database schema (User, Room, Messages, etc.)
+- ✅ Route protection middleware
+- ✅ Login page with Google authentication
+
+## 📋 Prerequisites
+
+Before running this project, you need:
+
+1. **Node.js 18+** installed
+2. **PostgreSQL database** (local or Docker)
+3. **Google OAuth credentials** from Google Cloud Console
+
+## 🔧 Setup Instructions
+
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Set Up Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/webcall
+
+# NextAuth
+NEXTAUTH_SECRET=your-secret-here-run-openssl-rand-base64-32
+NEXTAUTH_URL=http://localhost:3000
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+**To generate NEXTAUTH_SECRET:**
+```bash
+openssl rand -base64 32
+```
+
+**To get Google OAuth credentials:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing one
+3. Enable Google+ API
+4. Create OAuth 2.0 credentials
+5. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
+
+### 3. Set Up Database
+
+If you don't have PostgreSQL installed, you can use Docker:
+
+```bash
+docker run -d \
+  --name webcall-postgres \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=webcall \
+  -p 5432:5432 \
+  postgres:15
+```
+
+Then update your DATABASE_URL in `.env`:
+```
+DATABASE_URL=postgresql://postgres:password@localhost:5432/webcall
+```
+
+### 4. Initialize Database
+
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+### 5. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) - you should be redirected to the login page.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ✅ Phase 1 Acceptance Criteria
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [x] `npm run dev` starts without errors
+- [x] Visiting `http://localhost:3000` redirects to `/login`
+- [x] Login page renders with Google button
+- [ ] Clicking Google button initiates OAuth flow (requires .env setup)
+- [ ] After login, user is redirected to `/`
+- [ ] User record appears in `User` table in DB
+- [ ] Visiting `/login` when logged in redirects to `/`
 
-## Learn More
+## 📁 Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+webcall/
+├── app/
+│   ├── api/auth/[...nextauth]/  # NextAuth API routes
+│   ├── login/                   # Login page
+│   ├── page.tsx                 # Home page (protected)
+│   └── globals.css              # Global styles
+├── components/
+│   └── ui/                      # shadcn/ui components
+├── lib/
+│   ├── auth.ts                  # NextAuth configuration
+│   ├── prisma.ts                # Prisma client
+│   └── utils.ts                 # Utility functions
+├── prisma/
+│   └── schema.prisma            # Database schema
+├── types/
+│   └── next-auth.d.ts           # TypeScript types for NextAuth
+└── middleware.ts                # Route protection
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠 Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Authentication**: NextAuth.js v5
+- **Database**: PostgreSQL + Prisma ORM
+- **OAuth Provider**: Google
 
-## Deploy on Vercel
+## 🔜 Next Steps (Phase 2)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Phase 2 will add:
+- Dashboard UI
+- Room creation and management
+- Room join functionality
+- Room API endpoints
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📝 License
+
+MIT
