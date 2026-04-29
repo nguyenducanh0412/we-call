@@ -1,80 +1,85 @@
-# WebCall — Copilot Agent Global Instructions
+# WebCall — Copilot Agent Master Instructions
 
-> This file is always loaded by GitHub Copilot Agent. It defines the project-wide rules,
-> tech stack, and conventions. Every phase prompt inherits these rules automatically.
+> This file is automatically loaded by GitHub Copilot Agent on every session.
+> It tells Copilot how to read and execute the phase plan files autonomously.
 
 ---
 
-## Project Overview
-A real-time audio/video calling web app (side project).
-Core features: create/join rooms, audio+video call, text chat, emoji reactions, host controls.
+## 🤖 Agent Behavior
+
+You are a **senior full-stack engineer** building the WebCall project.
+Your job is to read the phase plan files and execute them step by step.
+
+### How to start (when user says "start", "begin", "tiếp tục", "run", or similar):
+
+1. Read `prompts/PHASES.md` to get the phase list and current status
+2. Find the **first phase that is NOT marked `[x] DONE`**
+3. Read that phase's `.md` file from `prompts/`
+4. **Ask the user to confirm** before executing: "Ready to run Phase N — [name]? (yes/no)"
+5. Execute all steps in the phase file sequentially
+6. After all Acceptance Criteria pass → mark the phase `[x] DONE` in `PHASES.md`
+7. Ask: "Phase N complete ✅. Run Phase N+1 — [name]? (yes/no)"
+
+### Rules during execution:
+- Always read the full phase file before doing anything
+- Execute steps in the exact order written in the phase file
+- If a step requires running a terminal command, run it and wait for success before continuing
+- If a step fails, stop and report the error — do NOT skip ahead
+- If a file already exists, check if it needs updating before overwriting
+- Never delete files unless explicitly told to
+
+---
+
+## 📁 Project Structure
+
+```
+/
+├── .github/
+│   └── copilot-instructions.md   ← You are here (auto-loaded)
+├── .claude/
+│   └── CLAUDE.md                 ← Claude Code equivalent (auto-loaded)
+├── prompts/
+│   ├── PHASES.md                 ← Phase tracker (read this first)
+│   ├── phase-1-setup-auth.md
+│   ├── phase-2-dashboard-room-api.md
+│   ├── phase-3-livekit-call.md
+│   ├── phase-4-socket-chat-reactions.md
+│   └── phase-5-host-controls-polish-deploy.md
+└── scripts/
+    └── run-phase.sh              ← Shell helper (optional)
+```
 
 ---
 
 ## Tech Stack (never deviate)
-- **Framework**: Next.js 14, App Router, TypeScript strict mode
+
+- **Framework**: Next.js 14, App Router, TypeScript strict
 - **Styling**: Tailwind CSS + shadcn/ui
-- **Auth**: NextAuth.js v5, Google OAuth only
-- **Video/Audio**: LiveKit SDK (`livekit-client` + `@livekit/components-react`)
-- **Realtime**: Socket.io (standalone server, deployed separately)
+- **Auth**: NextAuth.js v5, Google OAuth
+- **Video/Audio**: LiveKit SDK
+- **Realtime**: Socket.io (standalone server)
 - **Database**: PostgreSQL + Prisma ORM
 - **State**: Zustand
-- **Animations**: Framer Motion (reactions only)
+- **Animations**: Framer Motion
 - **Toasts**: Sonner
 
 ---
 
-## Code Conventions (apply to every file)
-- TypeScript: no `any`, all props typed with interfaces
-- React Server Components by default; add `"use client"` only when needed
+## Code Conventions
+
+- TypeScript: no `any`, all props typed
+- React Server Components by default, `"use client"` only when needed
 - Named exports for components, default export for pages
-- File naming: `kebab-case.tsx` for components, `camelCase.ts` for lib/hooks
-- All async functions: try/catch with proper error handling
-- All interactive elements: `aria-label` attribute
+- `kebab-case.tsx` for components, `camelCase.ts` for lib/hooks
+- All async: try/catch with error handling
 - No inline styles — Tailwind only
-- No `console.log` in committed code — use `console.error` for caught errors only
+- No `console.log` — use `console.error` for caught errors
+- All interactive elements: `aria-label`
 
 ---
 
-## Folder Structure
-```
-/app
-  /(auth)/login/page.tsx
-  /(dashboard)/page.tsx
-  /room/[code]/page.tsx
-  /api/auth/[...nextauth]/route.ts
-  /api/rooms/route.ts
-  /api/rooms/[code]/route.ts
-  /api/livekit/token/route.ts
+## Environment Variables Required
 
-/components
-  /ui/              ← shadcn/ui base components only
-  /room/            ← all in-call components
-  /dashboard/       ← home page components
-
-/lib
-  auth.ts           ← NextAuth config
-  livekit.ts        ← token generation
-  socket.ts         ← Socket.io client singleton
-  prisma.ts         ← PrismaClient singleton
-
-/hooks
-  useRoom.ts
-  useChat.ts
-  useReactions.ts
-  useHostControls.ts
-
-/store
-  roomStore.ts
-  chatStore.ts
-
-/socket-server
-  index.ts          ← standalone Socket.io server
-```
-
----
-
-## Environment Variables
 ```env
 DATABASE_URL=
 NEXTAUTH_SECRET=
@@ -87,12 +92,3 @@ LIVEKIT_API_SECRET=
 NEXT_PUBLIC_LIVEKIT_URL=wss://your-app.livekit.cloud
 NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
 ```
-
----
-
-## Design Rules
-- Dark mode default: `bg-zinc-950` background, `text-zinc-100` text
-- In-call page: full viewport, `overflow-hidden`, no page scroll
-- ControlBar: fixed bottom, `backdrop-blur`, `bg-zinc-900/80`
-- Loading: skeleton components, never blank white screens
-- Errors: sonner toast, never alert()
