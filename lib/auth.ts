@@ -11,13 +11,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+  session: {
+    strategy: "database",
+  },
   callbacks: {
-    session({ session, user }) {
-      session.user.id = user.id;
+    async session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
+      }
       return session;
     },
   },
   pages: {
     signIn: "/login",
   },
+  trustHost: true,
+  debug: process.env.NODE_ENV === "development",
 });
