@@ -29,13 +29,13 @@
 
 ## Phases
 
-### [ ] TODO — Phase 1: Project Setup, Database & Auth
+### [x] DONE — Phase 1: Project Setup, Database & Auth
 - **File**: `prompts/phase-1-setup-auth.md`
 - **Goal**: Bootstrap Next.js project, Prisma schema, Google OAuth login
 - **Depends on**: Nothing (start here)
 - **External requirement**: PostgreSQL running (local or Docker)
 - **Estimated time**: 15–20 min
-- **Notes**: —
+- **Notes**: Completed successfully. Build verified, Prisma client generated.
 
 ---
 
@@ -88,5 +88,5 @@
 ## Completion Summary
 
 - Total phases: 5
-- Completed: 0 / 5
-- Last updated: —
+- Completed: 1 / 5
+- Last updated: 2026-04-29
