@@ -39,12 +39,12 @@
 
 ---
 
-### [ ] TODO — Phase 2: Dashboard & Room Management API
+### [x] DONE — Phase 2: Dashboard & Room Management API
 - **File**: `prompts/phase-2-dashboard-room-api.md`
 - **Goal**: Home dashboard UI, create/join room, Room API endpoints
 - **Depends on**: Phase 1 ✅
 - **Estimated time**: 10–15 min
-- **Notes**: —
+- **Notes**: Completed successfully. Build verified, all API routes working.
 
 ---
 
@@ -88,5 +88,5 @@
 ## Completion Summary
 
 - Total phases: 5
-- Completed: 1 / 5
+- Completed: 2 / 5
 - Last updated: 2026-04-29

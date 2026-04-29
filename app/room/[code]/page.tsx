@@ -2,9 +2,9 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 interface RoomPageProps {
-  params: {
+  params: Promise<{
     code: string;
-  };
+  }>;
 }
 
 export default async function RoomPage({ params }: RoomPageProps) {
@@ -14,7 +14,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
     redirect("/login");
   }
 
-  const { code } = params;
+  const { code } = await params;
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
