@@ -1,70 +1,36 @@
-# 📞 WebCall — Copilot Agent Prompt Kit
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Bộ prompt tách theo phase để dùng với **GitHub Copilot Agent mode**.
+## Getting Started
 
----
+First, run the development server:
 
-## 📁 Cấu trúc
-
-```
-webcall-copilot/
-├── .github/
-│   └── copilot-instructions.md   ← Global rules (tự động load bởi Copilot)
-└── prompts/
-    ├── phase-1-setup-auth.md           ← Setup dự án + DB + Google Login
-    ├── phase-2-dashboard-room-api.md   ← Dashboard + Room API
-    ├── phase-3-livekit-call.md         ← Call UI với LiveKit
-    ├── phase-4-socket-chat-reactions.md ← Chat + Reactions realtime
-    └── phase-5-host-controls-polish-deploy.md ← Host controls + Deploy
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
----
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## 🚀 Cách dùng
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-### Bước 1 — Setup file global
-Đặt file `.github/copilot-instructions.md` vào trong thư mục gốc của project.
-Copilot Agent sẽ tự động đọc file này ở mỗi session — không cần paste lại.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-### Bước 2 — Chạy từng phase theo thứ tự
-Với mỗi phase:
-1. Mở **VS Code** → **Copilot Chat** (icon chat ở sidebar)
-2. Chuyển sang **Agent mode** (dropdown phía trên chat box)
-3. Gõ: `@workspace` rồi **paste nội dung file prompt tương ứng**
-4. Copilot sẽ tự tạo files, chạy lệnh, và hỏi nếu cần confirm
+## Learn More
 
-### Bước 3 — Kiểm tra Acceptance Criteria
-Cuối mỗi phase prompt đều có checklist `[ ]`.
-Verify thủ công trước khi chuyển sang phase tiếp theo.
+To learn more about Next.js, take a look at the following resources:
 
----
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## ⏱ Ước tính thời gian (với Copilot Agent)
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-| Phase | Nội dung | Thời gian ước tính |
-|-------|----------|-------------------|
-| 1 | Setup + Auth | 15–20 phút |
-| 2 | Dashboard + API | 10–15 phút |
-| 3 | LiveKit Call UI | 20–30 phút |
-| 4 | Chat + Reactions | 20–25 phút |
-| 5 | Host Controls + Deploy | 20–30 phút |
-| **Total** | | **~90–120 phút** |
+## Deploy on Vercel
 
----
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-## ⚠️ Lưu ý quan trọng
-
-- Luôn chạy **đúng thứ tự** Phase 1 → 5
-- Sau Phase 1: test login thủ công trước khi đi tiếp
-- Phase 3 cần **LiveKit account** (miễn phí tại livekit.io)
-- Phase 4 cần chạy socket server song song: `npm run dev:all`
-- Nếu Copilot hỏi "proceed?", luôn review diff trước khi confirm
-
----
-
-## 🔑 Tài khoản cần tạo trước
-
-- [ ] Google Cloud Console → OAuth 2.0 credentials
-- [ ] LiveKit Cloud → free project
-- [ ] Vercel account
-- [ ] Railway account (socket server + PostgreSQL)
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
