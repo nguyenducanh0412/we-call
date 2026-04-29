@@ -1,70 +1,87 @@
-# 📞 WebCall — Copilot Agent Prompt Kit
+# WebCall
 
-Bộ prompt tách theo phase để dùng với **GitHub Copilot Agent mode**.
+A modern, real-time video calling application with chat, reactions, and host controls.
 
----
+![WebCall](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![LiveKit](https://img.shields.io/badge/LiveKit-Real--time%20Video-green)
+![Socket.io](https://img.shields.io/badge/Socket.io-Real--time%20Chat-orange)
 
-## 📁 Cấu trúc
+## ✨ Features
 
+### Core Functionality
+- 🔐 **Google OAuth Authentication** - Secure login with NextAuth.js v5
+- 🎥 **High-Quality Video/Audio** - Powered by LiveKit
+- 💬 **Real-time Chat** - Socket.io for instant messaging
+- 😊 **Emoji Reactions** - Send reactions that float and fade
+- ✋ **Raise Hand** - Signal to speak with visual indicator
+- 📋 **Room Codes** - Easy to share and join
+
+### Host Controls
+- 👥 **Participant Management** - View all participants
+- 🔇 **Mute Participants** - Control audio permissions
+- 🚪 **Kick Participants** - Remove disruptive users
+- 👑 **Transfer Host** - Give control to another user
+- 🔒 **Lock Room** - Prevent new participants from joining
+- ❌ **End Call** - Close the room for everyone
+
+### UI/UX
+- 🎨 **Modern Dark Theme** - Sleek zinc/gray design
+- 📱 **Responsive** - Works on desktop, tablet, and mobile
+- 🔔 **Toast Notifications** - Real-time status updates
+- ⏱️ **Call Duration Timer** - Track meeting length
+- 👀 **Participant Count** - See who's in the room
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 20+ and npm
+- PostgreSQL database
+- Google OAuth credentials
+- LiveKit account (free tier available)
+
+### 1. Install Dependencies
+```bash
+npm install
+cd socket-server && npm install && cd ..
 ```
-webcall-copilot/
-├── .github/
-│   └── copilot-instructions.md   ← Global rules (tự động load bởi Copilot)
-└── prompts/
-    ├── phase-1-setup-auth.md           ← Setup dự án + DB + Google Login
-    ├── phase-2-dashboard-room-api.md   ← Dashboard + Room API
-    ├── phase-3-livekit-call.md         ← Call UI với LiveKit
-    ├── phase-4-socket-chat-reactions.md ← Chat + Reactions realtime
-    └── phase-5-host-controls-polish-deploy.md ← Host controls + Deploy
+
+### 2. Set Up Environment
+```bash
+cp .env.example .env.local
+# Edit .env.local with your credentials
 ```
 
----
+### 3. Set Up Database
+```bash
+npx prisma db push
+```
 
-## 🚀 Cách dùng
+### 4. Run Development Server
+```bash
+npm run dev:all
+```
 
-### Bước 1 — Setup file global
-Đặt file `.github/copilot-instructions.md` vào trong thư mục gốc của project.
-Copilot Agent sẽ tự động đọc file này ở mỗi session — không cần paste lại.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Bước 2 — Chạy từng phase theo thứ tự
-Với mỗi phase:
-1. Mở **VS Code** → **Copilot Chat** (icon chat ở sidebar)
-2. Chuyển sang **Agent mode** (dropdown phía trên chat box)
-3. Gõ: `@workspace` rồi **paste nội dung file prompt tương ứng**
-4. Copilot sẽ tự tạo files, chạy lệnh, và hỏi nếu cần confirm
+## 📝 Environment Variables
 
-### Bước 3 — Kiểm tra Acceptance Criteria
-Cuối mỗi phase prompt đều có checklist `[ ]`.
-Verify thủ công trước khi chuyển sang phase tiếp theo.
+See `.env.example` for required environment variables.
 
----
+## 🌐 Deployment
 
-## ⏱ Ước tính thời gian (với Copilot Agent)
+- **Frontend**: Deploy to Vercel
+- **Socket Server**: Deploy to Railway with Docker
+- **Database**: Railway PostgreSQL or Supabase
 
-| Phase | Nội dung | Thời gian ước tính |
-|-------|----------|-------------------|
-| 1 | Setup + Auth | 15–20 phút |
-| 2 | Dashboard + API | 10–15 phút |
-| 3 | LiveKit Call UI | 20–30 phút |
-| 4 | Chat + Reactions | 20–25 phút |
-| 5 | Host Controls + Deploy | 20–30 phút |
-| **Total** | | **~90–120 phút** |
+See full deployment guide in the repository.
+
+## 🐛 Troubleshooting
+
+- **Socket not connecting**: Check `NEXT_PUBLIC_SOCKET_URL`
+- **Google OAuth fails**: Verify redirect URIs in Google Console
+- **Video/Audio not working**: Check LiveKit credentials and browser permissions
 
 ---
 
-## ⚠️ Lưu ý quan trọng
-
-- Luôn chạy **đúng thứ tự** Phase 1 → 5
-- Sau Phase 1: test login thủ công trước khi đi tiếp
-- Phase 3 cần **LiveKit account** (miễn phí tại livekit.io)
-- Phase 4 cần chạy socket server song song: `npm run dev:all`
-- Nếu Copilot hỏi "proceed?", luôn review diff trước khi confirm
-
----
-
-## 🔑 Tài khoản cần tạo trước
-
-- [ ] Google Cloud Console → OAuth 2.0 credentials
-- [ ] LiveKit Cloud → free project
-- [ ] Vercel account
-- [ ] Railway account (socket server + PostgreSQL)
+Built with ❤️ using Next.js and LiveKit
