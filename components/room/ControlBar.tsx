@@ -14,7 +14,6 @@ import {
   Smile,
   Hand,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -60,19 +59,18 @@ export function ControlBar({
   const [showEndDialog, setShowEndDialog] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  const [isMuted, setIsMuted] = useState(false);
-  const [isCamOff, setIsCamOff] = useState(false);
+  // Lấy trực tiếp từ localParticipant thay vì dùng state riêng
+  const isMuted = !localParticipant.isMicrophoneEnabled;
+  const isCamOff = !localParticipant.isCameraEnabled;
 
   const emojis = ["👍", "❤️", "😂", "😮", "👏"];
 
   const toggleMic = async () => {
-    const enabled = await localParticipant.setMicrophoneEnabled(!isMuted);
-    setIsMuted(!enabled);
+    await localParticipant.setMicrophoneEnabled(isMuted);
   };
 
   const toggleCamera = async () => {
-    const enabled = await localParticipant.setCameraEnabled(!isCamOff);
-    setIsCamOff(!enabled);
+    await localParticipant.setCameraEnabled(isCamOff);
   };
 
   const handleReactionClick = (emoji: string) => {
@@ -230,7 +228,7 @@ export function ControlBar({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleEndForAll}
-              className="bg-red-600 hover:bg-red-500"
+              className="bg-red-600 hover:bg-red-500 focus-visible:ring-red-500 focus-visible:ring-offset-zinc-900"
             >
               End for all
             </AlertDialogAction>

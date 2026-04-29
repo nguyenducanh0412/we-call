@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocalParticipant } from "@livekit/components-react";
-import type { Participant, Track } from "livekit-client";
-import { Mic, MicOff, Video, VideoOff } from "lucide-react";
+import { useLocalParticipant, VideoTrack } from "@livekit/components-react";
+import type { Participant } from "livekit-client";
+import { Track } from "livekit-client";
+import { Mic, MicOff } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ParticipantTileProps {
@@ -13,7 +14,12 @@ interface ParticipantTileProps {
 export function ParticipantTile({ participant }: ParticipantTileProps) {
   const { localParticipant } = useLocalParticipant();
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [videoTrack, setVideoTrack] = useState<Track | null>(null);
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
+    null,
+  );
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
+    null,
+  );
 
   const isLocal = participant.identity === localParticipant.identity;
 
@@ -46,40 +52,81 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
     };
   }, [participant]);
 
-  // Listen for track changes
+  // Attach video track
   useEffect(() => {
-    const updateVideoTrack = () => {
-      const track = participant.videoTrackPublications.values().next().value;
-      setVideoTrack(track?.track || null);
+    if (!videoElement) return;
+
+    const attachVideoTrack = () => {
+      const videoTrack = participant.getTrackPublication(
+        Track.Source.Camera,
+      )?.track;
+      if (videoTrack) {
+        videoTrack.attach(videoElement);
+      }
     };
 
-    updateVideoTrack();
-    participant.on("trackPublished", updateVideoTrack);
-    participant.on("trackUnpublished", updateVideoTrack);
+    const detachVideoTrack = () => {
+      const videoTrack = participant.getTrackPublication(
+        Track.Source.Camera,
+      )?.track;
+      if (videoTrack) {
+        videoTrack.detach(videoElement);
+      }
+    };
+
+    // Attach ngay nếu track đã có sẵn
+    attachVideoTrack();
+
+    // Listen for track events
+    participant.on("trackSubscribed", attachVideoTrack);
+    participant.on("trackUnsubscribed", detachVideoTrack);
 
     return () => {
-      participant.off("trackPublished", updateVideoTrack);
-      participant.off("trackUnpublished", updateVideoTrack);
+      detachVideoTrack();
+      participant.off("trackSubscribed", attachVideoTrack);
+      participant.off("trackUnsubscribed", detachVideoTrack);
     };
-  }, [participant]);
+  }, [participant, videoElement]);
 
-  // Attach video element
+  // Attach audio track (chỉ cho remote participants)
   useEffect(() => {
-    if (videoTrack) {
-      const videoElement = document.getElementById(
-        `video-${participant.identity}`
-      ) as HTMLVideoElement;
-      if (videoElement) {
-        videoTrack.attach(videoElement);
-        return () => {
-          videoTrack.detach(videoElement);
-        };
+    if (isLocal || !audioElement) return;
+
+    const attachAudioTrack = () => {
+      const audioTrack = participant.getTrackPublication(
+        Track.Source.Microphone,
+      )?.track;
+      if (audioTrack) {
+        audioTrack.attach(audioElement);
       }
-    }
-  }, [videoTrack, participant.identity]);
+    };
+
+    const detachAudioTrack = () => {
+      const audioTrack = participant.getTrackPublication(
+        Track.Source.Microphone,
+      )?.track;
+      if (audioTrack) {
+        audioTrack.detach(audioElement);
+      }
+    };
+
+    // Attach ngay nếu track đã có sẵn
+    attachAudioTrack();
+
+    // Listen for track events
+    participant.on("trackSubscribed", attachAudioTrack);
+    participant.on("trackUnsubscribed", detachAudioTrack);
+
+    return () => {
+      detachAudioTrack();
+      participant.off("trackSubscribed", attachAudioTrack);
+      participant.off("trackUnsubscribed", detachAudioTrack);
+    };
+  }, [participant, audioElement, isLocal]);
 
   const isCameraEnabled = participant.isCameraEnabled;
   const isMicrophoneEnabled = participant.isMicrophoneEnabled;
+  const participantName = participant.name || participant.identity || "Unknown";
 
   return (
     <div
@@ -87,10 +134,10 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
         isSpeaking ? "ring-2 ring-green-500" : ""
       }`}
     >
-      {isCameraEnabled && videoTrack ? (
+      {isCameraEnabled ? (
         <video
-          id={`video-${participant.identity}`}
-          className="w-full h-full object-cover"
+          ref={setVideoElement}
+          className="w-full h-full object-cover scale-x-[-1]"
           autoPlay
           playsInline
           muted={isLocal}
@@ -98,17 +145,22 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
       ) : (
         <div className="flex items-center justify-center w-full h-full">
           <Avatar className="h-24 w-24">
-            <AvatarImage src={avatar} alt={participant.name || "User"} />
+            <AvatarImage src={avatar} alt={participantName} />
             <AvatarFallback className="text-2xl">
-              {getInitials(participant.name || "User")}
+              {getInitials(participantName)}
             </AvatarFallback>
           </Avatar>
         </div>
       )}
 
+      {/* Audio element (hidden) */}
+      {!isLocal && (
+        <audio ref={setAudioElement} autoPlay playsInline className="hidden" />
+      )}
+
       {/* Name label */}
       <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur px-2 py-1 rounded text-white text-sm">
-        {isLocal ? `You (${participant.name})` : participant.name}
+        {isLocal ? `You (${participantName})` : participantName}
       </div>
 
       {/* Mic status */}

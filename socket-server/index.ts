@@ -22,6 +22,9 @@ const io = new Server(httpServer, {
 // Track raised hands per room: roomCode → Set of userIds
 const raisedHands = new Map<string, Set<string>>();
 
+// Track connected users per room to prevent duplicate join messages
+const connectedUsers = new Map<string, Set<string>>(); // roomCode → Set of userIds
+
 io.on("connection", (socket) => {
   const { roomCode, userId, userName, userAvatar } = socket.handshake.auth;
 
@@ -38,18 +41,31 @@ io.on("connection", (socket) => {
     raisedHands.set(roomCode, new Set());
   }
 
+  // Init connected users set
+  if (!connectedUsers.has(roomCode)) {
+    connectedUsers.set(roomCode, new Set());
+  }
+
+  const roomUsers = connectedUsers.get(roomCode)!;
+  const isFirstConnection = !roomUsers.has(userId);
+
+  // Add user to connected set
+  roomUsers.add(userId);
+
   console.log(`[${roomCode}] ${userName} (${userId}) connected`);
 
-  // Broadcast system message: user joined
-  socket.to(roomCode).emit("chat:receive", {
-    id: crypto.randomUUID(),
-    userId: null,
-    userName: "System",
-    userAvatar: null,
-    content: `${userName} joined the room`,
-    type: "SYSTEM",
-    createdAt: new Date().toISOString(),
-  });
+  // Chỉ broadcast "joined" nếu đây là lần connect đầu tiên (tránh duplicate trong React Strict Mode)
+  if (isFirstConnection) {
+    socket.to(roomCode).emit("chat:receive", {
+      id: crypto.randomUUID(),
+      userId: null,
+      userName: "System",
+      userAvatar: null,
+      content: `${userName} joined the room`,
+      type: "SYSTEM",
+      createdAt: new Date().toISOString(),
+    });
+  }
 
   // ── Chat ──────────────────────────────────────
   socket.on("chat:send", async (data: { content: string }) => {
@@ -119,19 +135,31 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     raisedHands.get(roomCode)?.delete(userId);
 
-    console.log(`[${roomCode}] ${userName} (${userId}) disconnected`);
-
-    socket.to(roomCode).emit("chat:receive", {
-      id: crypto.randomUUID(),
-      userId: null,
-      userName: "System",
-      userAvatar: null,
-      content: `${userName} left the room`,
-      type: "SYSTEM",
-      createdAt: new Date().toISOString(),
+    // Chỉ emit "left" message khi user thực sự disconnect (không còn socket nào)
+    const roomSockets = io.sockets.adapter.rooms.get(roomCode);
+    const stillInRoom = roomSockets && Array.from(roomSockets).some((socketId) => {
+      const sock = io.sockets.sockets.get(socketId);
+      return sock?.handshake.auth.userId === userId;
     });
 
-    socket.to(roomCode).emit("hand:lowered", { userId });
+    if (!stillInRoom) {
+      // User thực sự rời room, xóa khỏi tracking
+      connectedUsers.get(roomCode)?.delete(userId);
+
+      console.log(`[${roomCode}] ${userName} (${userId}) disconnected`);
+
+      socket.to(roomCode).emit("chat:receive", {
+        id: crypto.randomUUID(),
+        userId: null,
+        userName: "System",
+        userAvatar: null,
+        content: `${userName} left the room`,
+        type: "SYSTEM",
+        createdAt: new Date().toISOString(),
+      });
+
+      socket.to(roomCode).emit("hand:lowered", { userId });
+    }
   });
 });
 

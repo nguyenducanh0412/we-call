@@ -26,6 +26,14 @@ export async function GET(
       return NextResponse.json({ ended: true }, { status: 200 });
     }
 
+    // Check if room is locked and user is not the host
+    if (room.isLocked && room.hostId !== session.user.id) {
+      return NextResponse.json(
+        { error: "Room is locked", locked: true },
+        { status: 403 }
+      );
+    }
+
     return NextResponse.json({
       room: {
         id: room.id,

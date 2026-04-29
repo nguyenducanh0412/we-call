@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useLocalParticipant, useParticipants } from "@livekit/components-react";
+import {
+  useLocalParticipant,
+  useParticipants,
+} from "@livekit/components-react";
 import { RoomHeader } from "./RoomHeader";
 import { ParticipantGrid } from "./ParticipantGrid";
 import { ControlBar } from "./ControlBar";
@@ -28,12 +31,16 @@ interface RoomLayoutProps {
   isHost: boolean;
 }
 
-export function RoomLayout({ room, user, isHost: initialIsHost }: RoomLayoutProps) {
+export function RoomLayout({
+  room,
+  user,
+  isHost: initialIsHost,
+}: RoomLayoutProps) {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isHostPanelOpen, setIsHostPanelOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [lastReadCount, setLastReadCount] = useState(0);
   const [isHost, setIsHost] = useState(initialIsHost);
   const [roomIsLocked, setRoomIsLocked] = useState(false);
 
@@ -80,19 +87,16 @@ export function RoomLayout({ room, user, isHost: initialIsHost }: RoomLayoutProp
     isHost,
   });
 
-  // Track unread messages
-  useEffect(() => {
-    if (!isChatOpen && messages.length > 0) {
-      setUnreadCount((prev) => prev + 1);
-    }
-  }, [messages.length, isChatOpen]);
-
-  // Reset unread when chat opens
   useEffect(() => {
     if (isChatOpen) {
-      setUnreadCount(0);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLastReadCount(messages.length);
     }
-  }, [isChatOpen]);
+  }, [isChatOpen, messages.length]);
+
+  const unreadCount = isChatOpen
+    ? 0
+    : Math.max(0, messages.length - lastReadCount);
 
   // Map LiveKit participants to our format
   const participantList = participants.map((p) => ({
@@ -104,8 +108,12 @@ export function RoomLayout({ room, user, isHost: initialIsHost }: RoomLayoutProp
 
   return (
     <div className="h-screen overflow-hidden bg-zinc-950 flex flex-col">
-      <RoomHeader roomName={room.name} roomCode={room.code} isLocked={roomIsLocked} />
-      
+      <RoomHeader
+        roomName={room.name}
+        roomCode={room.code}
+        isLocked={roomIsLocked}
+      />
+
       <div className="flex-1 flex overflow-hidden relative">
         {/* Host Panel (left side) */}
         {isHost && isHostPanelOpen && (
@@ -128,7 +136,7 @@ export function RoomLayout({ room, user, isHost: initialIsHost }: RoomLayoutProp
           <ParticipantGrid />
           <ReactionOverlay reactions={activeReactions} />
         </div>
-        
+
         {/* Chat panel (right side) */}
         {isChatOpen && (
           <ChatPanel

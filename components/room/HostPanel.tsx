@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { X, Lock, Unlock, PhoneOff, Crown, Mic, UserX } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -250,7 +249,7 @@ export function HostPanel({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleKickConfirm}
-              className="bg-red-600 hover:bg-red-500"
+              className="bg-red-600 hover:bg-red-500 focus-visible:ring-red-500 focus-visible:ring-offset-zinc-900"
             >
               Kick
             </AlertDialogAction>
@@ -275,7 +274,7 @@ export function HostPanel({
                 setShowEndDialog(false);
                 onEndCall();
               }}
-              className="bg-red-600 hover:bg-red-500"
+              className="bg-red-600 hover:bg-red-500 focus-visible:ring-red-500 focus-visible:ring-offset-zinc-900"
             >
               End for all
             </AlertDialogAction>
@@ -301,7 +300,7 @@ export function HostPanel({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleTransferConfirm}
-              className="bg-yellow-600 hover:bg-yellow-500"
+              className="bg-yellow-600 hover:bg-yellow-500 focus-visible:ring-yellow-500 focus-visible:ring-offset-zinc-900"
             >
               Transfer Host
             </AlertDialogAction>

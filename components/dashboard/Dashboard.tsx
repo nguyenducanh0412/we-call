@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Navbar } from "./Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,10 +31,21 @@ interface DashboardProps {
 
 export function Dashboard({ user }: DashboardProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [roomName, setRoomName] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+
+  // Handle error messages from redirects
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "room-locked") {
+      toast.error("This room is locked by the host");
+      // Clear error param without page reload
+      router.replace("/", { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +98,8 @@ export function Dashboard({ user }: DashboardProps) {
       if (!response.ok) {
         if (response.status === 404) {
           toast.error("Room not found");
+        } else if (response.status === 403 && data.locked) {
+          toast.error("This room is locked by the host");
         } else {
           throw new Error(data.error || "Failed to join room");
         }
@@ -230,6 +243,7 @@ export function Dashboard({ user }: DashboardProps) {
                     value={roomName}
                     onChange={(e) => setRoomName(e.target.value)}
                     disabled={isCreating}
+                    autoComplete="off"
                     className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500"
                   />
                 </div>
@@ -298,6 +312,7 @@ export function Dashboard({ user }: DashboardProps) {
                       }
                       maxLength={6}
                       disabled={isJoining}
+                      autoComplete="off"
                       className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-violet-500 uppercase text-center text-2xl font-mono tracking-widest"
                     />
                   </div>

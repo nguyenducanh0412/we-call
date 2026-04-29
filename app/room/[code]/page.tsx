@@ -28,6 +28,11 @@ export default async function Room({ params }: RoomPageProps) {
 
   const isHost = room.hostId === session.user.id;
 
+  // Check if room is locked and user is not the host
+  if (room.isLocked && !isHost) {
+    redirect("/?error=room-locked");
+  }
+
   return (
     <RoomPage
       room={{

@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function LoginPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -97,7 +97,9 @@ export default function LoginPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 backdrop-blur-sm"
             >
               <Sparkles className="w-4 h-4 text-blue-400" />
-              <span className="text-sm text-blue-300">Now with AI-powered features</span>
+              <span className="text-sm text-blue-300">
+                Now with AI-powered features
+              </span>
             </motion.div>
 
             <h1 className="text-5xl md:text-7xl font-bold">
@@ -112,7 +114,7 @@ export default function LoginPage() {
             </p>
 
             <p className="text-slate-400 text-lg max-w-lg mx-auto lg:mx-0">
-              Join millions connecting face-to-face. Create instant video rooms, 
+              Join millions connecting face-to-face. Create instant video rooms,
               chat in real-time, and collaborate seamlessly.
             </p>
 
@@ -130,7 +132,9 @@ export default function LoginPage() {
                   <h3 className="text-sm font-semibold text-white mb-1">
                     {feature.title}
                   </h3>
-                  <p className="text-xs text-slate-400">{feature.description}</p>
+                  <p className="text-xs text-slate-400">
+                    {feature.description}
+                  </p>
                 </motion.div>
               ))}
             </div>
@@ -152,7 +156,7 @@ export default function LoginPage() {
               >
                 {/* Glow effect */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-violet-600 to-pink-600 rounded-2xl blur-xl opacity-25 group-hover:opacity-40 transition duration-1000"></div>
-                
+
                 {/* Card */}
                 <div className="relative bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
                   {/* Logo */}
@@ -162,7 +166,10 @@ export default function LoginPage() {
                     transition={{ type: "spring", stiffness: 400 }}
                   >
                     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 via-violet-500 to-pink-500 flex items-center justify-center shadow-lg shadow-blue-500/50">
-                      <Video className="w-10 h-10 text-white" strokeWidth={2.5} />
+                      <Video
+                        className="w-10 h-10 text-white"
+                        strokeWidth={2.5}
+                      />
                     </div>
                   </motion.div>
 
@@ -174,7 +181,10 @@ export default function LoginPage() {
                   </p>
 
                   {/* Google Sign In Button */}
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     <Button
                       onClick={() => signIn("google", { callbackUrl: "/" })}
                       className="w-full h-12 bg-white hover:bg-slate-50 text-slate-900 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
@@ -206,7 +216,10 @@ export default function LoginPage() {
                   <div className="mt-6 text-center">
                     <p className="text-xs text-slate-500">
                       By signing in, you agree to our{" "}
-                      <a href="#" className="text-blue-400 hover:text-blue-300 underline">
+                      <a
+                        href="#"
+                        className="text-blue-400 hover:text-blue-300 underline"
+                      >
                         Terms of Service
                       </a>
                     </p>

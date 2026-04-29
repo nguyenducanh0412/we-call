@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getSocket, disconnectSocket } from "@/lib/socket";
 import { toast } from "sonner";
@@ -37,7 +37,19 @@ export function useChat({
 }: UseChatOptions) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+
+  // Use refs to store callbacks to avoid infinite re-renders
+  const onMutedRef = useRef(onMuted);
+  const onHostChangedRef = useRef(onHostChanged);
+  const onRoomLockChangedRef = useRef(onRoomLockChanged);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onMutedRef.current = onMuted;
+    onHostChangedRef.current = onHostChanged;
+    onRoomLockChangedRef.current = onRoomLockChanged;
+  }, [onMuted, onHostChanged, onRoomLockChanged]);
 
   useEffect(() => {
     // Initialize socket connection
@@ -48,7 +60,7 @@ export function useChat({
       userAvatar,
     });
 
-    setSocket(sock);
+    socketRef.current = sock;
 
     // Listen for incoming messages
     const handleChatReceive = (message: ChatMessage) => {
@@ -79,7 +91,7 @@ export function useChat({
     const handleMuted = ({ targetUserId }: { targetUserId: string }) => {
       if (targetUserId === userId) {
         toast.warning("You were muted by the host");
-        onMuted?.();
+        onMutedRef.current?.();
       }
     };
 
@@ -93,16 +105,16 @@ export function useChat({
     }) => {
       if (newHostId === userId) {
         toast.success("You are now the host");
-        onHostChanged?.(true);
+        onHostChangedRef.current?.(true);
       } else {
         toast.info(`${newHostName} is now the host`);
-        onHostChanged?.(false, newHostName);
+        onHostChangedRef.current?.(false, newHostName);
       }
     };
 
     // Handle room lock changed
     const handleRoomLockChanged = ({ isLocked }: { isLocked: boolean }) => {
-      onRoomLockChanged?.(isLocked);
+      onRoomLockChangedRef.current?.(isLocked);
     };
 
     sock.on("chat:receive", handleChatReceive);
@@ -122,11 +134,11 @@ export function useChat({
       sock.off("room:lockChanged", handleRoomLockChanged);
       // Do NOT disconnect socket here - it's managed globally
     };
-  }, [roomCode, userId, userName, userAvatar, router, onMuted, onHostChanged, onRoomLockChanged]);
+  }, [roomCode, userId, userName, userAvatar, router]);
 
   const sendMessage = (content: string) => {
-    if (socket && content.trim()) {
-      socket.emit("chat:send", { content: content.trim() });
+    if (socketRef.current && content.trim()) {
+      socketRef.current.emit("chat:send", { content: content.trim() });
     }
   };
 
