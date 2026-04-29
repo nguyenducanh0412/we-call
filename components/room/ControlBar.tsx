@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
+import { LocalVideoTrack } from "livekit-client";
 import {
   Mic,
   MicOff,
@@ -13,6 +14,7 @@ import {
   PhoneOff,
   Smile,
   Hand,
+  Layers,
 } from "lucide-react";
 import {
   Popover,
@@ -29,6 +31,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useVirtualBackground } from "@/hooks/useVirtualBackground";
+import { BackgroundPicker } from "@/components/room/BackgroundPicker";
 
 interface ControlBarProps {
   isHost: boolean;
@@ -58,10 +62,19 @@ export function ControlBar({
   const room = useRoomContext();
   const [showEndDialog, setShowEndDialog] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showBgPicker, setShowBgPicker] = useState(false);
+
+  // Virtual background hook
+  const { currentMode, isApplying, applyBackground, removeBackground } = useVirtualBackground();
 
   // Lấy trực tiếp từ localParticipant thay vì dùng state riêng
   const isMuted = !localParticipant.isMicrophoneEnabled;
   const isCamOff = !localParticipant.isCameraEnabled;
+
+  // Get local video track
+  const videoTrack = localParticipant
+    .getTrackPublications()
+    .find((p) => p.kind === "video")?.track as LocalVideoTrack | undefined;
 
   const emojis = ["👍", "❤️", "😂", "😮", "👏"];
 
@@ -76,6 +89,18 @@ export function ControlBar({
   const handleReactionClick = (emoji: string) => {
     onSendReaction?.(emoji);
     setShowEmojiPicker(false);
+  };
+
+  const handleApplyBackground = async (mode: Parameters<typeof applyBackground>[0]) => {
+    if (videoTrack) {
+      await applyBackground(mode, videoTrack);
+    }
+  };
+
+  const handleRemoveBackground = async () => {
+    if (videoTrack) {
+      await removeBackground(videoTrack);
+    }
   };
 
   const handleLeave = () => {
@@ -130,6 +155,36 @@ export function ControlBar({
             <Video className="h-5 w-5 text-white" />
           )}
         </button>
+
+        {/* Virtual Background toggle */}
+        <Popover open={showBgPicker} onOpenChange={setShowBgPicker}>
+          <PopoverTrigger asChild>
+            <button
+              className="relative w-12 h-12 rounded-full flex items-center justify-center transition-colors bg-zinc-800 hover:bg-zinc-700"
+              aria-label="Virtual background"
+              title="Virtual background"
+            >
+              <Layers className="h-5 w-5 text-white" />
+              {currentMode.type !== "none" && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full" />
+              )}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-auto p-0 bg-transparent border-0 shadow-none" 
+            side="top"
+            align="center"
+          >
+            <BackgroundPicker
+              localVideoTrack={videoTrack ?? null}
+              currentMode={currentMode}
+              isApplying={isApplying}
+              onApply={handleApplyBackground}
+              onRemove={handleRemoveBackground}
+              onClose={() => setShowBgPicker(false)}
+            />
+          </PopoverContent>
+        </Popover>
 
         {/* Chat toggle */}
         <button

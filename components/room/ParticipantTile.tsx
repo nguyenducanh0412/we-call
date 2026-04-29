@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { useLocalParticipant, VideoTrack } from "@livekit/components-react";
 import type { Participant } from "livekit-client";
 import { Track } from "livekit-client";
-import { Mic, MicOff } from "lucide-react";
+import { Mic, MicOff, Sparkles } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { BackgroundMode } from "@/hooks/useVirtualBackground";
 
 interface ParticipantTileProps {
   participant: Participant;
@@ -20,6 +21,7 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
     null,
   );
+  const [backgroundMode, setBackgroundMode] = useState<BackgroundMode>({ type: "none" });
 
   const isLocal = participant.identity === localParticipant.identity;
 
@@ -28,6 +30,42 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
     ? JSON.parse(participant.metadata)
     : null;
   const avatar = metadata?.avatar || null;
+
+  // Load background preference for local participant
+  useEffect(() => {
+    if (!isLocal) return;
+
+    const loadBackgroundMode = () => {
+      try {
+        const saved = localStorage.getItem("webcall-bg-preference");
+        if (saved) {
+          setBackgroundMode(JSON.parse(saved));
+        }
+      } catch (error) {
+        console.error("Failed to load background mode:", error);
+      }
+    };
+
+    // Load initially
+    loadBackgroundMode();
+
+    // Listen for storage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "webcall-bg-preference") {
+        loadBackgroundMode();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Poll for changes (for same-tab updates)
+    const interval = setInterval(loadBackgroundMode, 1000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [isLocal]);
 
   // Get initials from name
   const getInitials = (name: string) => {
@@ -175,6 +213,17 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
           </div>
         )}
       </div>
+
+      {/* Virtual background indicator (local only) */}
+      {isLocal && backgroundMode.type !== "none" && (
+        <div 
+          className="absolute top-2 right-2 bg-blue-600/80 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1"
+          title={backgroundMode.type === "blur" ? "Background blur active" : "Virtual background active"}
+        >
+          <Sparkles className="h-3 w-3 text-white" />
+          <span className="text-xs text-white font-medium">BG</span>
+        </div>
+      )}
     </div>
   );
 }
