@@ -3,6 +3,14 @@ import { Server } from "socket.io";
 
 const httpServer = createServer();
 
+// Health check endpoint for Railway/Docker
+httpServer.on("request", (req, res) => {
+  if (req.url === "/health") {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("OK");
+  }
+});
+
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.NEXT_PUBLIC_URL || "http://localhost:3000",

@@ -1,144 +1,87 @@
-# 📞 WebCall
+# WebCall
 
-Real-time video calling application built with Next.js, LiveKit, and Socket.io.
+A modern, real-time video calling application with chat, reactions, and host controls.
 
-## 🚀 Phase 1 Setup Complete ✅
+![WebCall](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![LiveKit](https://img.shields.io/badge/LiveKit-Real--time%20Video-green)
+![Socket.io](https://img.shields.io/badge/Socket.io-Real--time%20Chat-orange)
 
-This project has completed Phase 1 of development:
-- ✅ Next.js 14 with TypeScript and Tailwind CSS
-- ✅ Prisma ORM with PostgreSQL
-- ✅ NextAuth.js v5 with Google OAuth
-- ✅ Full database schema (User, Room, Messages, etc.)
-- ✅ Route protection middleware
-- ✅ Login page with Google authentication
+## ✨ Features
 
-## 📋 Prerequisites
+### Core Functionality
+- 🔐 **Google OAuth Authentication** - Secure login with NextAuth.js v5
+- 🎥 **High-Quality Video/Audio** - Powered by LiveKit
+- 💬 **Real-time Chat** - Socket.io for instant messaging
+- 😊 **Emoji Reactions** - Send reactions that float and fade
+- ✋ **Raise Hand** - Signal to speak with visual indicator
+- 📋 **Room Codes** - Easy to share and join
 
-Before running this project, you need:
+### Host Controls
+- 👥 **Participant Management** - View all participants
+- 🔇 **Mute Participants** - Control audio permissions
+- 🚪 **Kick Participants** - Remove disruptive users
+- 👑 **Transfer Host** - Give control to another user
+- 🔒 **Lock Room** - Prevent new participants from joining
+- ❌ **End Call** - Close the room for everyone
 
-1. **Node.js 18+** installed
-2. **PostgreSQL database** (local or Docker)
-3. **Google OAuth credentials** from Google Cloud Console
+### UI/UX
+- 🎨 **Modern Dark Theme** - Sleek zinc/gray design
+- 📱 **Responsive** - Works on desktop, tablet, and mobile
+- 🔔 **Toast Notifications** - Real-time status updates
+- ⏱️ **Call Duration Timer** - Track meeting length
+- 👀 **Participant Count** - See who's in the room
 
-## 🔧 Setup Instructions
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 20+ and npm
+- PostgreSQL database
+- Google OAuth credentials
+- LiveKit account (free tier available)
 
 ### 1. Install Dependencies
-
 ```bash
 npm install
+cd socket-server && npm install && cd ..
 ```
 
-### 2. Set Up Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/webcall
-
-# NextAuth
-NEXTAUTH_SECRET=your-secret-here-run-openssl-rand-base64-32
-NEXTAUTH_URL=http://localhost:3000
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
-
-**To generate NEXTAUTH_SECRET:**
+### 2. Set Up Environment
 ```bash
-openssl rand -base64 32
+cp .env.example .env.local
+# Edit .env.local with your credentials
 ```
-
-**To get Google OAuth credentials:**
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing one
-3. Enable Google+ API
-4. Create OAuth 2.0 credentials
-5. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
 
 ### 3. Set Up Database
-
-If you don't have PostgreSQL installed, you can use Docker:
-
 ```bash
-docker run -d \
-  --name webcall-postgres \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=webcall \
-  -p 5432:5432 \
-  postgres:15
-```
-
-Then update your DATABASE_URL in `.env`:
-```
-DATABASE_URL=postgresql://postgres:password@localhost:5432/webcall
-```
-
-### 4. Initialize Database
-
-```bash
-npx prisma generate
 npx prisma db push
 ```
 
-### 5. Run Development Server
-
+### 4. Run Development Server
 ```bash
-npm run dev
+npm run dev:all
 ```
 
-Open [http://localhost:3000](http://localhost:3000) - you should be redirected to the login page.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## ✅ Phase 1 Acceptance Criteria
+## 📝 Environment Variables
 
-- [x] `npm run dev` starts without errors
-- [x] Visiting `http://localhost:3000` redirects to `/login`
-- [x] Login page renders with Google button
-- [ ] Clicking Google button initiates OAuth flow (requires .env setup)
-- [ ] After login, user is redirected to `/`
-- [ ] User record appears in `User` table in DB
-- [ ] Visiting `/login` when logged in redirects to `/`
+See `.env.example` for required environment variables.
 
-## 📁 Project Structure
+## 🌐 Deployment
 
-```
-webcall/
-├── app/
-│   ├── api/auth/[...nextauth]/  # NextAuth API routes
-│   ├── login/                   # Login page
-│   ├── page.tsx                 # Home page (protected)
-│   └── globals.css              # Global styles
-├── components/
-│   └── ui/                      # shadcn/ui components
-├── lib/
-│   ├── auth.ts                  # NextAuth configuration
-│   ├── prisma.ts                # Prisma client
-│   └── utils.ts                 # Utility functions
-├── prisma/
-│   └── schema.prisma            # Database schema
-├── types/
-│   └── next-auth.d.ts           # TypeScript types for NextAuth
-└── middleware.ts                # Route protection
-```
+- **Frontend**: Deploy to Vercel
+- **Socket Server**: Deploy to Railway with Docker
+- **Database**: Railway PostgreSQL or Supabase
 
-## 🛠 Tech Stack
+See full deployment guide in the repository.
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript (strict mode)
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Authentication**: NextAuth.js v5
-- **Database**: PostgreSQL + Prisma ORM
-- **OAuth Provider**: Google
+## 🐛 Troubleshooting
 
-## 🔜 Next Steps (Phase 2)
+- **Socket not connecting**: Check `NEXT_PUBLIC_SOCKET_URL`
+- **Google OAuth fails**: Verify redirect URIs in Google Console
+- **Video/Audio not working**: Check LiveKit credentials and browser permissions
 
-Phase 2 will add:
-- Dashboard UI
-- Room creation and management
-- Room join functionality
-- Room API endpoints
+---
 
-## 📝 License
-
-MIT
+Built with ❤️ using Next.js and LiveKit
