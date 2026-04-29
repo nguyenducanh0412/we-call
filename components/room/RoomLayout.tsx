@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocalParticipant } from "@livekit/components-react";
 import { RoomHeader } from "./RoomHeader";
 import { ParticipantGrid } from "./ParticipantGrid";
 import { ControlBar } from "./ControlBar";
+import { ChatPanel } from "./ChatPanel";
+import { ReactionOverlay } from "./ReactionOverlay";
+import { useChat } from "@/hooks/useChat";
+import { useReactions } from "@/hooks/useReactions";
 
 interface RoomLayoutProps {
   room: {
@@ -22,23 +27,68 @@ interface RoomLayoutProps {
 }
 
 export function RoomLayout({ room, user, isHost }: RoomLayoutProps) {
+  const { localParticipant } = useLocalParticipant();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isParticipantsOpen, setIsParticipantsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Initialize chat hook
+  const { messages, sendMessage } = useChat({
+    roomCode: room.code,
+    userId: user.id,
+    userName: user.name,
+    userAvatar: user.image || null,
+    onMuted: async () => {
+      // Mute the local participant when host mutes us
+      await localParticipant.setMicrophoneEnabled(false);
+    },
+  });
+
+  // Initialize reactions hook
+  const {
+    activeReactions,
+    raisedHands,
+    isHandRaised,
+    sendReaction,
+    toggleHand,
+  } = useReactions({
+    roomCode: room.code,
+    userId: user.id,
+    userName: user.name,
+    userAvatar: user.image || null,
+  });
+
+  // Track unread messages
+  useEffect(() => {
+    if (!isChatOpen && messages.length > 0) {
+      setUnreadCount((prev) => prev + 1);
+    }
+  }, [messages.length, isChatOpen]);
+
+  // Reset unread when chat opens
+  useEffect(() => {
+    if (isChatOpen) {
+      setUnreadCount(0);
+    }
+  }, [isChatOpen]);
 
   return (
     <div className="h-screen overflow-hidden bg-zinc-950 flex flex-col">
       <RoomHeader roomName={room.name} />
       
-      <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
+        <div className="flex-1 overflow-hidden relative">
           <ParticipantGrid />
+          <ReactionOverlay reactions={activeReactions} />
         </div>
         
-        {/* Chat panel will be added in Phase 4 */}
+        {/* Chat panel */}
         {isChatOpen && (
-          <div className="w-80 bg-zinc-900 border-l border-zinc-800">
-            <div className="p-4 text-white">Chat (Phase 4)</div>
-          </div>
+          <ChatPanel
+            messages={messages}
+            onSendMessage={sendMessage}
+            onClose={() => setIsChatOpen(false)}
+          />
         )}
       </div>
 
@@ -48,6 +98,10 @@ export function RoomLayout({ room, user, isHost }: RoomLayoutProps) {
         onChatToggle={() => setIsChatOpen(!isChatOpen)}
         isParticipantsOpen={isParticipantsOpen}
         onParticipantsToggle={() => setIsParticipantsOpen(!isParticipantsOpen)}
+        onSendReaction={sendReaction}
+        isHandRaised={isHandRaised}
+        onToggleHand={toggleHand}
+        unreadCount={unreadCount}
       />
 
       {/* Participant list sidebar */}
@@ -64,8 +118,21 @@ export function RoomLayout({ room, user, isHost }: RoomLayoutProps) {
                 ×
               </button>
             </div>
-            <div className="text-zinc-400 text-sm">
-              Participant list (Phase 3)
+            <div className="space-y-2">
+              {raisedHands.length > 0 && (
+                <div className="border-b border-zinc-800 pb-2 mb-2">
+                  <p className="text-zinc-400 text-xs mb-2">Raised Hands</p>
+                  {raisedHands.map((hand) => (
+                    <div
+                      key={hand.userId}
+                      className="text-white text-sm flex items-center gap-2 py-1"
+                    >
+                      <span>✋</span>
+                      <span>{hand.userName}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

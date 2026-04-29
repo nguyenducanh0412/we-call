@@ -11,9 +11,15 @@ import {
   MessageSquare,
   Users,
   PhoneOff,
-  Settings,
+  Smile,
+  Hand,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +37,10 @@ interface ControlBarProps {
   onChatToggle: () => void;
   isParticipantsOpen: boolean;
   onParticipantsToggle: () => void;
+  onSendReaction?: (emoji: string) => void;
+  isHandRaised?: boolean;
+  onToggleHand?: () => void;
+  unreadCount?: number;
 }
 
 export function ControlBar({
@@ -39,14 +49,21 @@ export function ControlBar({
   onChatToggle,
   isParticipantsOpen,
   onParticipantsToggle,
+  onSendReaction,
+  isHandRaised = false,
+  onToggleHand,
+  unreadCount = 0,
 }: ControlBarProps) {
   const router = useRouter();
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
   const [showEndDialog, setShowEndDialog] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const [isMuted, setIsMuted] = useState(false);
   const [isCamOff, setIsCamOff] = useState(false);
+
+  const emojis = ["👍", "❤️", "😂", "😮", "👏"];
 
   const toggleMic = async () => {
     const enabled = await localParticipant.setMicrophoneEnabled(!isMuted);
@@ -56,6 +73,11 @@ export function ControlBar({
   const toggleCamera = async () => {
     const enabled = await localParticipant.setCameraEnabled(!isCamOff);
     setIsCamOff(!enabled);
+  };
+
+  const handleReactionClick = (emoji: string) => {
+    onSendReaction?.(emoji);
+    setShowEmojiPicker(false);
   };
 
   const handleLeave = () => {
@@ -114,7 +136,7 @@ export function ControlBar({
         {/* Chat toggle */}
         <button
           onClick={onChatToggle}
-          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+          className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
             isChatOpen
               ? "bg-blue-600 hover:bg-blue-500"
               : "bg-zinc-800 hover:bg-zinc-700"
@@ -122,6 +144,50 @@ export function ControlBar({
           aria-label="Toggle chat"
         >
           <MessageSquare className="h-5 w-5 text-white" />
+          {unreadCount > 0 && !isChatOpen && (
+            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </button>
+
+        {/* Emoji reactions */}
+        <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+          <PopoverTrigger asChild>
+            <button
+              className="w-12 h-12 rounded-full flex items-center justify-center transition-colors bg-zinc-800 hover:bg-zinc-700"
+              aria-label="Send reaction"
+            >
+              <Smile className="h-5 w-5 text-white" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-2 bg-zinc-800 border-zinc-700">
+            <div className="flex gap-2">
+              {emojis.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => handleReactionClick(emoji)}
+                  className="text-2xl hover:scale-125 transition-transform"
+                  aria-label={`React with ${emoji}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Raise hand */}
+        <button
+          onClick={onToggleHand}
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+            isHandRaised
+              ? "bg-yellow-500 hover:bg-yellow-400"
+              : "bg-zinc-800 hover:bg-zinc-700"
+          }`}
+          aria-label={isHandRaised ? "Lower hand" : "Raise hand"}
+        >
+          <Hand className="h-5 w-5 text-white" />
         </button>
 
         {/* Participants toggle */}
