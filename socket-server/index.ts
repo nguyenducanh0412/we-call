@@ -79,9 +79,11 @@ io.on("connection", (socket) => {
     io.to(roomCode).emit("hand:raised", { userId, userName });
   });
 
-  socket.on("hand:lower", () => {
-    raisedHands.get(roomCode)?.delete(userId);
-    io.to(roomCode).emit("hand:lowered", { userId });
+  socket.on("hand:lower", (data?: { targetUserId?: string }) => {
+    // If targetUserId is provided, it's a host action to lower someone's hand
+    const targetId = data?.targetUserId || userId;
+    raisedHands.get(roomCode)?.delete(targetId);
+    io.to(roomCode).emit("hand:lowered", { userId: targetId });
   });
 
   // ── Host Controls ─────────────────────────────

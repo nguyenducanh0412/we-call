@@ -22,6 +22,8 @@ interface UseChatOptions {
   userName: string;
   userAvatar: string | null;
   onMuted?: () => void;
+  onHostChanged?: (isHost: boolean, newHostName?: string) => void;
+  onRoomLockChanged?: (isLocked: boolean) => void;
 }
 
 export function useChat({
@@ -30,6 +32,8 @@ export function useChat({
   userName,
   userAvatar,
   onMuted,
+  onHostChanged,
+  onRoomLockChanged,
 }: UseChatOptions) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -53,32 +57,60 @@ export function useChat({
 
     // Handle room ended
     const handleRoomEnded = () => {
-      toast.error("Room has been ended by the host");
+      toast.error("The host ended the call");
       disconnectSocket();
-      router.push("/");
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
     };
 
     // Handle kicked by host
     const handleKicked = ({ targetUserId }: { targetUserId: string }) => {
       if (targetUserId === userId) {
-        toast.error("You have been removed from the room");
+        toast.error("You were removed from the room");
         disconnectSocket();
-        router.push("/");
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
       }
     };
 
     // Handle muted by host
     const handleMuted = ({ targetUserId }: { targetUserId: string }) => {
       if (targetUserId === userId) {
-        toast.warning("You have been muted by the host");
+        toast.warning("You were muted by the host");
         onMuted?.();
       }
+    };
+
+    // Handle host changed
+    const handleHostChanged = ({
+      newHostId,
+      newHostName,
+    }: {
+      newHostId: string;
+      newHostName: string;
+    }) => {
+      if (newHostId === userId) {
+        toast.success("You are now the host");
+        onHostChanged?.(true);
+      } else {
+        toast.info(`${newHostName} is now the host`);
+        onHostChanged?.(false, newHostName);
+      }
+    };
+
+    // Handle room lock changed
+    const handleRoomLockChanged = ({ isLocked }: { isLocked: boolean }) => {
+      onRoomLockChanged?.(isLocked);
     };
 
     sock.on("chat:receive", handleChatReceive);
     sock.on("room:ended", handleRoomEnded);
     sock.on("host:kicked", handleKicked);
     sock.on("host:muted", handleMuted);
+    sock.on("host:changed", handleHostChanged);
+    sock.on("room:lockChanged", handleRoomLockChanged);
 
     // Cleanup
     return () => {
@@ -86,9 +118,11 @@ export function useChat({
       sock.off("room:ended", handleRoomEnded);
       sock.off("host:kicked", handleKicked);
       sock.off("host:muted", handleMuted);
+      sock.off("host:changed", handleHostChanged);
+      sock.off("room:lockChanged", handleRoomLockChanged);
       // Do NOT disconnect socket here - it's managed globally
     };
-  }, [roomCode, userId, userName, userAvatar, router, onMuted]);
+  }, [roomCode, userId, userName, userAvatar, router, onMuted, onHostChanged, onRoomLockChanged]);
 
   const sendMessage = (content: string) => {
     if (socket && content.trim()) {

@@ -43,3 +43,57 @@ export async function GET(
     );
   }
 }
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ code: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { code } = await params;
+    const body = await req.json();
+
+    const room = await prisma.room.findUnique({
+      where: { code: code.toUpperCase() },
+    });
+
+    if (!room) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+
+    // Only host can update room
+    if (room.hostId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Update room with partial data
+    const updatedRoom = await prisma.room.update({
+      where: { code: code.toUpperCase() },
+      data: {
+        ...(typeof body.isLocked === "boolean" && { isLocked: body.isLocked }),
+        ...(body.endedAt && { endedAt: new Date(body.endedAt) }),
+        ...(body.hostId && { hostId: body.hostId }),
+      },
+    });
+
+    return NextResponse.json({
+      room: {
+        id: updatedRoom.id,
+        name: updatedRoom.name,
+        code: updatedRoom.code,
+        hostId: updatedRoom.hostId,
+        isLocked: updatedRoom.isLocked,
+      },
+    });
+  } catch (error) {
+    console.error("Update room error:", error);
+    return NextResponse.json(
+      { error: "Failed to update room" },
+      { status: 500 }
+    );
+  }
+}

@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useLocalParticipant } from "@livekit/components-react";
+import { useLocalParticipant, useParticipants } from "@livekit/components-react";
 import { RoomHeader } from "./RoomHeader";
 import { ParticipantGrid } from "./ParticipantGrid";
 import { ControlBar } from "./ControlBar";
 import { ChatPanel } from "./ChatPanel";
 import { ReactionOverlay } from "./ReactionOverlay";
+import { HostPanel } from "./HostPanel";
 import { useChat } from "@/hooks/useChat";
 import { useReactions } from "@/hooks/useReactions";
+import { useHostControls } from "@/hooks/useHostControls";
 
 interface RoomLayoutProps {
   room: {
@@ -26,11 +28,14 @@ interface RoomLayoutProps {
   isHost: boolean;
 }
 
-export function RoomLayout({ room, user, isHost }: RoomLayoutProps) {
+export function RoomLayout({ room, user, isHost: initialIsHost }: RoomLayoutProps) {
   const { localParticipant } = useLocalParticipant();
+  const participants = useParticipants();
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isParticipantsOpen, setIsParticipantsOpen] = useState(false);
+  const [isHostPanelOpen, setIsHostPanelOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isHost, setIsHost] = useState(initialIsHost);
+  const [roomIsLocked, setRoomIsLocked] = useState(false);
 
   // Initialize chat hook
   const { messages, sendMessage } = useChat({
@@ -42,6 +47,12 @@ export function RoomLayout({ room, user, isHost }: RoomLayoutProps) {
       // Mute the local participant when host mutes us
       await localParticipant.setMicrophoneEnabled(false);
     },
+    onHostChanged: (newIsHost) => {
+      setIsHost(newIsHost);
+    },
+    onRoomLockChanged: (isLocked) => {
+      setRoomIsLocked(isLocked);
+    },
   });
 
   // Initialize reactions hook
@@ -51,11 +62,22 @@ export function RoomLayout({ room, user, isHost }: RoomLayoutProps) {
     isHandRaised,
     sendReaction,
     toggleHand,
+    lowerParticipantHand,
   } = useReactions({
     roomCode: room.code,
     userId: user.id,
     userName: user.name,
     userAvatar: user.image || null,
+  });
+
+  // Initialize host controls
+  const hostControls = useHostControls({
+    roomCode: room.code,
+    roomId: room.id,
+    userId: user.id,
+    userName: user.name,
+    userAvatar: user.image || null,
+    isHost,
   });
 
   // Track unread messages
@@ -72,17 +94,42 @@ export function RoomLayout({ room, user, isHost }: RoomLayoutProps) {
     }
   }, [isChatOpen]);
 
+  // Map LiveKit participants to our format
+  const participantList = participants.map((p) => ({
+    userId: p.identity,
+    userName: p.name || p.identity,
+    userAvatar: null, // LiveKit doesn't provide avatars by default
+    isHost: p.identity === room.hostId,
+  }));
+
   return (
     <div className="h-screen overflow-hidden bg-zinc-950 flex flex-col">
-      <RoomHeader roomName={room.name} />
+      <RoomHeader roomName={room.name} roomCode={room.code} isLocked={roomIsLocked} />
       
       <div className="flex-1 flex overflow-hidden relative">
+        {/* Host Panel (left side) */}
+        {isHost && isHostPanelOpen && (
+          <HostPanel
+            currentUserId={user.id}
+            participants={participantList}
+            raisedHands={raisedHands}
+            isLocked={hostControls.isLocked}
+            onClose={() => setIsHostPanelOpen(false)}
+            onKick={hostControls.kickParticipant}
+            onMute={hostControls.muteParticipant}
+            onEndCall={hostControls.endCall}
+            onTransferHost={hostControls.transferHost}
+            onToggleLock={hostControls.toggleLock}
+            onLowerHand={lowerParticipantHand}
+          />
+        )}
+
         <div className="flex-1 overflow-hidden relative">
           <ParticipantGrid />
           <ReactionOverlay reactions={activeReactions} />
         </div>
         
-        {/* Chat panel */}
+        {/* Chat panel (right side) */}
         {isChatOpen && (
           <ChatPanel
             messages={messages}
@@ -96,47 +143,13 @@ export function RoomLayout({ room, user, isHost }: RoomLayoutProps) {
         isHost={isHost}
         isChatOpen={isChatOpen}
         onChatToggle={() => setIsChatOpen(!isChatOpen)}
-        isParticipantsOpen={isParticipantsOpen}
-        onParticipantsToggle={() => setIsParticipantsOpen(!isParticipantsOpen)}
+        isParticipantsOpen={isHostPanelOpen}
+        onParticipantsToggle={() => setIsHostPanelOpen(!isHostPanelOpen)}
         onSendReaction={sendReaction}
         isHandRaised={isHandRaised}
         onToggleHand={toggleHand}
         unreadCount={unreadCount}
       />
-
-      {/* Participant list sidebar */}
-      {isParticipantsOpen && (
-        <div className="fixed right-0 top-0 bottom-0 w-72 bg-zinc-900 border-l border-zinc-800 z-50">
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-semibold">Participants</h3>
-              <button
-                onClick={() => setIsParticipantsOpen(false)}
-                className="text-zinc-400 hover:text-white"
-                aria-label="Close participants"
-              >
-                ×
-              </button>
-            </div>
-            <div className="space-y-2">
-              {raisedHands.length > 0 && (
-                <div className="border-b border-zinc-800 pb-2 mb-2">
-                  <p className="text-zinc-400 text-xs mb-2">Raised Hands</p>
-                  {raisedHands.map((hand) => (
-                    <div
-                      key={hand.userId}
-                      className="text-white text-sm flex items-center gap-2 py-1"
-                    >
-                      <span>✋</span>
-                      <span>{hand.userName}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

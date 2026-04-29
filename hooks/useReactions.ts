@@ -112,6 +112,13 @@ export function useReactions({
     }
   };
 
+  const lowerParticipantHand = (targetUserId: string) => {
+    if (socket) {
+      // Emit a lower hand event for a specific user (host action)
+      socket.emit("hand:lower", { targetUserId });
+    }
+  };
+
   const toggleHand = () => {
     if (isHandRaised) {
       lowerHand();
@@ -127,6 +134,7 @@ export function useReactions({
     sendReaction,
     raiseHand,
     lowerHand,
+    lowerParticipantHand,
     toggleHand,
   };
 }
