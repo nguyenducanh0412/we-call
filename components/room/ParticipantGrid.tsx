@@ -14,9 +14,17 @@ export function ParticipantGrid() {
     return "grid-cols-4";
   };
 
+  if (participants.length === 0) {
+    return (
+      <div className="h-full w-full flex items-center justify-center">
+        <p className="text-zinc-400">Waiting for participants...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full w-full p-4 overflow-auto">
-      <div className={`grid ${getGridCols(participants.length)} gap-4 auto-rows-fr`}>
+      <div className={`grid ${getGridCols(participants.length)} gap-4 h-full`}>
         {participants.map((participant) => (
           <ParticipantTile
             key={participant.identity}

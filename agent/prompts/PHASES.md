@@ -48,13 +48,13 @@
 
 ---
 
-### [ ] TODO — Phase 3: LiveKit Integration & In-Call UI
+### [x] DONE — Phase 3: LiveKit Integration & In-Call UI
 - **File**: `prompts/phase-3-livekit-call.md`
 - **Goal**: LiveKit token API, full call UI with video/audio grid
 - **Depends on**: Phase 2 ✅
 - **External requirement**: LiveKit Cloud account + API keys in .env
 - **Estimated time**: 20–30 min
-- **Notes**: —
+- **Notes**: Completed successfully. Build verified. All core features working.
 
 ---
 
@@ -88,5 +88,5 @@
 ## Completion Summary
 
 - Total phases: 5
-- Completed: 2 / 5
+- Completed: 3 / 5
 - Last updated: 2026-04-29
