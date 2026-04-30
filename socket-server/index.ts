@@ -124,9 +124,12 @@ io.on("connection", (socket) => {
     io.to(roomCode).emit("room:ended");
   });
 
-  socket.on("host:transfer", (data: { newHostId: string; newHostName: string }) => {
-    io.to(roomCode).emit("host:changed", data);
-  });
+  socket.on(
+    "host:transfer",
+    (data: { newHostId: string; newHostName: string }) => {
+      io.to(roomCode).emit("host:changed", data);
+    },
+  );
 
   socket.on("host:lock", (data: { isLocked: boolean }) => {
     io.to(roomCode).emit("room:lockChanged", data);
@@ -138,10 +141,12 @@ io.on("connection", (socket) => {
 
     // Chỉ emit "left" message khi user thực sự disconnect (không còn socket nào)
     const roomSockets = io.sockets.adapter.rooms.get(roomCode);
-    const stillInRoom = roomSockets && Array.from(roomSockets).some((socketId) => {
-      const sock = io.sockets.sockets.get(socketId);
-      return sock?.handshake.auth.userId === userId;
-    });
+    const stillInRoom =
+      roomSockets &&
+      Array.from(roomSockets).some((socketId) => {
+        const sock = io.sockets.sockets.get(socketId);
+        return sock?.handshake.auth.userId === userId;
+      });
 
     if (!stillInRoom) {
       // User thực sự rời room, xóa khỏi tracking
@@ -164,7 +169,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.SOCKET_PORT || 3001;
-httpServer.listen(PORT, () => {
+const PORT = parseInt(process.env.PORT || "3001", 10);
+httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Socket.io server running on port ${PORT}`);
 });
