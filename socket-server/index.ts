@@ -17,6 +17,7 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"],
     credentials: true,
   },
+  transports: ["polling", "websocket"],
 });
 
 // Track raised hands per room: roomCode → Set of userIds
