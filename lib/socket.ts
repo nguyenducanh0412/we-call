@@ -22,7 +22,7 @@ export function getSocket(auth: {
 
   // Tạo socket mới
   if (!socket || !socket.connected) {
-    const socketUrl = process.env.PORT || "http://localhost:3001";
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
     socket = io(socketUrl, {
       auth,
       transports: ["websocket"],
